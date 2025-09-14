@@ -1,0 +1,95 @@
+version: '3'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      # --- THIS IS THE KEY FIX ---
+      # Listener for clients on your local machine (e.g., video_ingestion_service)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      # Listener for clients inside the Docker network (e.g., pose_service)
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'INTERNAL'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # ADDED: The Pose Service now runs in Docker
+  pose_service:
+    build:
+      context: ./pose
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+    volumes:
+      - ./pose:/app
+
+  object_service:
+    build:
+      context: ./object
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+    volumes:
+      - ./object:/app
+
+  face_service:
+    build:
+      context: ./face
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+    volumes:
+      - ./face:/app
+
+  scene_service:
+    build:
+      context: ./scene
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka 
+    volumes:
+      - ./scene:/app
+
+  interaction_service:
+    build:
+      context: ./interaction
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka   
+    volumes:
+      - ./interaction:/app
+
+  decision_service:
+    build:
+      context: ./decision
+      dockerfile: Dockerfile
+    environment:
+      # This securely loads the API key from the .env file
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    depends_on:
+      - kafka   
+    volumes:
+      - ./decision:/app
+
+  database_service:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka 
+    volumes:
+      - ./database:/app
+
+
+    

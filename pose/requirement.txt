@@ -1,0 +1,14 @@
+numpy==1.24.4
+torch==2.2.2
+torchvision==0.17.2
+Pillow==10.2.0
+opencv-python==4.8.0.76
+ultralytics==8.0.228
+boxmot==10.0.72
+torchreid==0.2.5
+tensorboard
+kafka-python
+filterpy
+scipy
+PyYAML
+tqdm
