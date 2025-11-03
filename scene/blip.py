@@ -7,7 +7,8 @@ from transformers import BlipProcessor, BlipForConditionalGeneration
 from kafka import KafkaConsumer, KafkaProducer
 
 # --- Kafka Configuration ---
-KAFKA_BROKER = 'kafka:29092'
+# KAFKA_BROKER = 'kafka:29092'
+KAFKA_BROKER = 'localhost:9092'
 # KAFKA_BROKER = '10.139.40.73:9092'
 INPUT_TOPIC = 'raw_video_frames'
 OUTPUT_TOPIC = 'scene_understanding_results'
@@ -24,6 +25,15 @@ print("Scene Understanding Service is running...")
 
 for message in consumer:
     data = message.value
+    
+    # Skip END_OF_CLIP markers
+    if data.get('message_type') == 'END_OF_CLIP':
+        continue
+    
+    # Skip if no frame_hex
+    if 'frame_hex' not in data:
+        continue
+    
     frame_bytes = np.frombuffer(bytes.fromhex(data['frame_hex']), dtype=np.uint8)
     frame = cv2.imdecode(frame_bytes, cv2.IMREAD_COLOR)
     if frame is None: continue
@@ -36,6 +46,12 @@ for message in consumer:
         output = model.generate(**inputs)
     caption = processor.decode(output[0], skip_special_tokens=True)
     
-    output_data = {"camera_id": data['camera_id'], "timestamp": data['timestamp'], "caption": caption}
+    output_data = {
+        "camera_id": data['camera_id'], 
+        "timestamp": data['timestamp'], 
+        "caption": caption,
+        "clip_id": data.get('clip_id'),
+        "frame_index": data.get('frame_index')
+    }
     producer.send(OUTPUT_TOPIC, value=output_data)
-    print(f"Generated caption for frame {data['timestamp']}: '{caption}'")
+    print(f"Generated caption for clip {data.get('clip_id', 'N/A')[:12]} frame {data.get('frame_index', 'N/A')}: '{caption}'")

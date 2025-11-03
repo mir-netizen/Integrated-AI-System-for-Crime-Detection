@@ -52,14 +52,14 @@ services:
     volumes:
       - ./face:/app
 
-  scene_service:
-    build:
-      context: ./scene
-      dockerfile: Dockerfile
-    depends_on:
-      - kafka 
-    volumes:
-      - ./scene:/app
+  # scene_service:
+  #   build:
+  #     context: ./scene
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - kafka 
+  #   volumes:
+  #     - ./scene:/app
 
   interaction_service:
     build:
@@ -82,14 +82,14 @@ services:
     volumes:
       - ./decision:/app
 
-  database_service:
-    build:
-      context: ./database
-      dockerfile: Dockerfile
-    depends_on:
-      - kafka 
-    volumes:
-      - ./database:/app
+  # database_service:
+  #   build:
+  #     context: ./database
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - kafka 
+  #   volumes:
+  #     - ./database:/app
 
 
     
