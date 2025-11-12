@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Modules Output - Surveillance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 3px solid #00ff88;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .nav-links {
+            margin-top: 10px;
+        }
+
+        .nav-links a {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #00ddff;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+        }
+
+        .module-card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .module-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .module-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .module-status {
+            margin-left: auto;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .status-idle {
+            background: #888;
+            color: #fff;
+        }
+
+        .module-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .data-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #00ddff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .data-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .data-row {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .data-label {
+            color: #00ff88;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .data-value {
+            color: #fff;
+            text-align: right;
+            flex: 1;
+        }
+
+        .timestamp {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-violent { background: #ff4444; }
+        .badge-suspicious { background: #ffaa00; }
+        .badge-normal { background: #44ff44; color: #000; }
+        .badge-high { background: #ff4444; }
+        .badge-medium { background: #ffaa00; }
+        .badge-low { background: #44ff44; color: #000; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .indicator-online { background: #44ff44; }
+        .indicator-offline { background: #888; }
+
+        @media (max-width: 1400px) {
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 All Modules Output - Real-time Monitoring</h1>
+        <div class="nav-links">
+            <a href="/">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="modules-grid">
+            <!-- 1. POSE Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🧍</div>
+                    <div class="module-title">Pose Estimation</div>
+                    <div class="module-status status-idle" id="pose-status">IDLE</div>
+                </div>
+                <div class="module-content" id="pose-content">
+                    <div class="no-data">Waiting for pose data...</div>
+                </div>
+            </div>
+
+            <!-- 2. OBJECT Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">📦</div>
+                    <div class="module-title">Object Detection</div>
+                    <div class="module-status status-idle" id="object-status">IDLE</div>
+                </div>
+                <div class="module-content" id="object-content">
+                    <div class="no-data">Waiting for object data...</div>
+                </div>
+            </div>
+
+            <!-- 3. WEAPON Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">�</div>
+                    <div class="module-title">Weapon Detection</div>
+                    <div class="module-status status-idle" id="weapon-status">IDLE</div>
+                </div>
+                <div class="module-content" id="weapon-content">
+                    <div class="no-data">Waiting for weapon data...</div>
+                </div>
+            </div>
+
+            <!-- 4. FACE Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">😊</div>
+                    <div class="module-title">Facial Expression</div>
+                    <div class="module-status status-idle" id="face-status">IDLE</div>
+                </div>
+                <div class="module-content" id="face-content">
+                    <div class="no-data">Waiting for face data...</div>
+                </div>
+            </div>
+
+            <!-- 5. SCENE Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🎬</div>
+                    <div class="module-title">Scene Understanding</div>
+                    <div class="module-status status-idle" id="scene-status">IDLE</div>
+                </div>
+                <div class="module-content" id="scene-content">
+                    <div class="no-data">Waiting for scene data...</div>
+                </div>
+            </div>
+
+            <!-- 6. INTERACTION Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🤝</div>
+                    <div class="module-title">Interaction Analysis</div>
+                    <div class="module-status status-idle" id="interaction-status">IDLE</div>
+                </div>
+                <div class="module-content" id="interaction-content">
+                    <div class="no-data">Waiting for interaction data...</div>
+                </div>
+            </div>
+
+            <!-- 7. ACTION Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🏃</div>
+                    <div class="module-title">Action Recognition</div>
+                    <div class="module-status status-idle" id="action-status">IDLE</div>
+                </div>
+                <div class="module-content" id="action-content">
+                    <div class="no-data">Waiting for action data...</div>
+                </div>
+            </div>
+
+            <!-- 8. DECISION Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🎯</div>
+                    <div class="module-title">Decision Analysis</div>
+                    <div class="module-status status-idle" id="decision-status">IDLE</div>
+                </div>
+                <div class="module-content" id="decision-content">
+                    <div class="no-data">Waiting for decision data...</div>
+                </div>
+            </div>
+
+            <!-- 9. OUTPUT CLIP Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🎬</div>
+                    <div class="module-title">Output Clip</div>
+                    <div class="module-status status-idle" id="output-status">IDLE</div>
+                </div>
+                <div class="module-content" id="output-content">
+                    <div class="no-data">Waiting for output clip data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update all modules
+        function updateModules() {
+            fetch('/api/modules/all')
+                .then(response => response.json())
+                .then(data => {
+                    updatePose(data.pose);
+                    updateObject(data.object);
+                    updateWeapon(data.weapon);
+                    updateFace(data.face);
+                    updateScene(data.scene);
+                    updateInteraction(data.interaction);
+                    updateAction(data.action);
+                    updateDecision(data.decision);
+                    updateOutput(data.output);
+                })
+                .catch(error => console.error('Error fetching modules:', error));
+        }
+
+        // Update POSE module
+        function updatePose(data) {
+            const content = document.getElementById('pose-content');
+            const status = document.getElementById('pose-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const persons = item.persons || [];
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">👥 Persons Detected:</span>
+                                <span class="data-value">${persons.length}</span>
+                            </div>
+                            ${persons.map((p, idx) => `
+                                <div class="data-row">
+                                    <span class="data-label">Person ${idx + 1} Keypoints:</span>
+                                    <span class="data-value">${p.keypoints ? p.keypoints.length : 0} points</span>
+                                </div>
+                            `).join('')}
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No pose data available</div>';
+            }
+        }
+
+        // Update OBJECT module
+        function updateObject(data) {
+            const content = document.getElementById('object-content');
+            const status = document.getElementById('object-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const detections = item.detections || [];
+                    const objectNames = detections.map(d => d.class_name);
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">📦 Objects Detected:</span>
+                                <span class="data-value">${detections.length}</span>
+                            </div>
+                            ${detections.length > 0 ? `
+                                <div class="data-row">
+                                    <span class="data-label">🔍 Items:</span>
+                                    <span class="data-value">${objectNames.join(', ')}</span>
+                                </div>
+                            ` : '<div class="data-row"><span class="data-value">No objects detected</span></div>'}
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No object data available</div>';
+            }
+        }
+
+        // Update WEAPON module
+        function updateWeapon(data) {
+            const content = document.getElementById('weapon-content');
+            const status = document.getElementById('weapon-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const detections = item.detections || [];
+                    const weaponNames = detections.map(d => d.class_name);
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">🔫 Weapons Detected:</span>
+                                <span class="data-value">${detections.length}</span>
+                            </div>
+                            ${detections.length > 0 ? `
+                                <div class="data-row">
+                                    <span class="data-label">⚠️ Items:</span>
+                                    <span class="data-value"><span class="badge badge-violent">${weaponNames.join(', ')}</span></span>
+                                </div>
+                            ` : '<div class="data-row"><span class="data-value" style="color: #44ff44;">No weapons detected</span></div>'}
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No weapon data available</div>';
+            }
+        }
+
+        // Update FACE module
+        function updateFace(data) {
+            const content = document.getElementById('face-content');
+            const status = document.getElementById('face-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const faces = item.faces || [];
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">� Faces Detected:</span>
+                                <span class="data-value">${faces.length}</span>
+                            </div>
+                            ${faces.map((f, idx) => `
+                                <div class="data-row">
+                                    <span class="data-label">Person ${idx + 1}:</span>
+                                    <span class="data-value">${f.dominant_emotion || 'unknown'} (${(f.age || 'N/A')} years, ${f.dominant_gender || 'N/A'})</span>
+                                </div>
+                            `).join('')}
+                            ${faces.length === 0 ? '<div class="data-row"><span class="data-value">No faces detected</span></div>' : ''}
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No face data available</div>';
+            }
+        }
+
+        // Update SCENE module
+        function updateScene(data) {
+            const content = document.getElementById('scene-content');
+            const status = document.getElementById('scene-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">🎬 Caption:</span>
+                                <span class="data-value">${item.caption || 'N/A'}</span>
+                            </div>
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No scene data available</div>';
+            }
+        }
+
+        // Update INTERACTION module
+        function updateInteraction(data) {
+            const content = document.getElementById('interaction-content');
+            const status = document.getElementById('interaction-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const groups = item.groups || [];
+                    const groupActivities = item.group_activities || [];
+                    const individualActivities = item.individual_activities || [];
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">👥 Groups:</span>
+                                <span class="data-value">${groups.length}</span>
+                            </div>
+                            ${groupActivities.map((activity, idx) => `
+                                <div class="data-row">
+                                    <span class="data-label">Group ${idx + 1}:</span>
+                                    <span class="data-value">${activity.motion_interpretation?.movement_intensity || 'N/A'} movement</span>
+                                </div>
+                            `).join('')}
+                            ${individualActivities.length > 0 ? `
+                                <div class="data-row">
+                                    <span class="data-label">👤 Individuals:</span>
+                                    <span class="data-value">${individualActivities.length}</span>
+                                </div>
+                            ` : ''}
+                            ${groups.length === 0 && individualActivities.length === 0 ? '<div class="data-row"><span class="data-value">No people detected</span></div>' : ''}
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No interaction data available</div>';
+            }
+        }
+
+        // Update ACTION module
+        function updateAction(data) {
+            const content = document.getElementById('action-content');
+            const status = document.getElementById('action-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const action = item.detected_action || 'unknown';
+                    const category = item.category || 'neutral';
+                    const badgeClass = category === 'violent' ? 'badge-violent' : 
+                                      category === 'suspicious' ? 'badge-suspicious' : 'badge-normal';
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">🎥 Clip:</span>
+                                <span class="data-value">${(item.clip_id || 'N/A').substring(0, 12)}...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">� Action:</span>
+                                <span class="data-value">${action}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">📊 Category:</span>
+                                <span class="data-value"><span class="badge ${badgeClass}">${category.toUpperCase()}</span></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">✅ Confidence:</span>
+                                <span class="data-value">${((item.confidence || 0) * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">📹 Frames:</span>
+                                <span class="data-value">${item.frame_count || 'N/A'}</span>
+                            </div>
+                            <div class="timestamp">⏰ ${item.received_at || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No action data available</div>';
+            }
+        }
+
+        // Update DECISION module
+        function updateDecision(data) {
+            const content = document.getElementById('decision-content');
+            const status = document.getElementById('decision-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const verdict = item.verdict || 'unknown';
+                    const threatLevel = item.threat_level || 0;
+                    const severity = item.severity || 'low';
+                    const confidence = item.confidence || 0;
+                    
+                    const verdictBadge = verdict === 'THREAT' ? 'badge-violent' : 
+                                        verdict === 'SUSPICIOUS' ? 'badge-suspicious' : 'badge-normal';
+                    const severityBadge = severity === 'high' ? 'badge-high' : 
+                                         severity === 'medium' ? 'badge-medium' : 'badge-low';
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">🎥 Clip:</span>
+                                <span class="data-value">${(item.clip_id || 'N/A').substring(0, 12)}...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">⚖️ Verdict:</span>
+                                <span class="data-value"><span class="badge ${verdictBadge}">${verdict}</span></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">📊 Threat Level:</span>
+                                <span class="data-value">${threatLevel}/10</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">🔥 Severity:</span>
+                                <span class="data-value"><span class="badge ${severityBadge}">${severity.toUpperCase()}</span></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">✅ Confidence:</span>
+                                <span class="data-value">${(confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">💬 Summary:</span>
+                                <span class="data-value">${item.summary || 'N/A'}</span>
+                            </div>
+                            ${item.reasons && item.reasons.length > 0 ? `
+                                <div class="data-row">
+                                    <span class="data-label">📝 Reasons:</span>
+                                    <span class="data-value">${item.reasons.join(', ')}</span>
+                                </div>
+                            ` : ''}
+                            ${item.weapons_detected && item.weapons_detected.length > 0 ? `
+                                <div class="data-row">
+                                    <span class="data-label">⚠️ Weapons:</span>
+                                    <span class="data-value"><span class="badge badge-violent">${item.weapons_detected.join(', ')}</span></span>
+                                </div>
+                            ` : ''}
+                            <div class="timestamp">⏰ ${item.analysis_timestamp || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No decision data available</div>';
+            }
+        }
+
+        // Update OUTPUT CLIP module
+        function updateOutput(data) {
+            const content = document.getElementById('output-content');
+            const status = document.getElementById('output-status');
+            
+            if (data && data.length > 0) {
+                status.textContent = 'ACTIVE';
+                status.className = 'module-status status-active';
+                
+                let html = '';
+                data.reverse().forEach(item => {
+                    const clipId = item.clip_id || 'N/A';
+                    const alertType = item.alert_type || 'normal';
+                    const description = item.description || 'No description available';
+                    
+                    const alertBadge = alertType === 'critical' ? 'badge-violent' : 
+                                      alertType === 'warning' ? 'badge-suspicious' : 'badge-normal';
+                    
+                    html += `
+                        <div class="data-item">
+                            <div class="data-row">
+                                <span class="data-label">🎥 Clip ID:</span>
+                                <span class="data-value">${clipId.substring(0, 12)}...</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">📹 Camera:</span>
+                                <span class="data-value">${item.camera_id || 'N/A'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">🚨 Alert Type:</span>
+                                <span class="data-value"><span class="badge ${alertBadge}">${alertType.toUpperCase()}</span></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">📝 Description:</span>
+                                <span class="data-value">${description}</span>
+                            </div>
+                            ${item.frame_count ? `
+                                <div class="data-row">
+                                    <span class="data-label">📊 Frames:</span>
+                                    <span class="data-value">${item.frame_count}</span>
+                                </div>
+                            ` : ''}
+                            ${item.duration ? `
+                                <div class="data-row">
+                                    <span class="data-label">⏱️ Duration:</span>
+                                    <span class="data-value">${item.duration}s</span>
+                                </div>
+                            ` : ''}
+                            <div class="timestamp">⏰ ${item.timestamp || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } else {
+                status.textContent = 'IDLE';
+                status.className = 'module-status status-idle';
+                content.innerHTML = '<div class="no-data">No output clip data available</div>';
+            }
+        }
+
+        // Initial load
+        updateModules();
+
+        // Periodic updates every 2 seconds
+        setInterval(updateModules, 2000);
+    </script>
+</body>
+</html>

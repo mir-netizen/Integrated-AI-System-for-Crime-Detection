@@ -19,7 +19,7 @@ ALERT_LOG_FILE = "clip_analysis_results.json"
 VERBOSE_LOGGING = False  # Set to False to reduce noise
 
 # --- Configuration ---
-KAFKA_BROKER = 'localhost:9092'
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
 INPUT_TOPICS = [
     'raw_video_frames',  # Need this to receive END_OF_CLIP markers!
     'object_detection_results', 
@@ -27,7 +27,8 @@ INPUT_TOPICS = [
     'pose_estimation_results', 
     'facial_expression_results', 
     'scene_understanding_results', 
-    'interaction_analysis_results'
+    'interaction_analysis_results',
+    'action_recognition_results'  # NEW: 7th service for temporal action recognition
 ]
 OUTPUT_TOPIC = 'clip_analysis_results'
 
@@ -47,6 +48,7 @@ OPTIONAL_SERVICES = [
 
 # --- Setup Groq API ---
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+# GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 client = Groq(api_key=GROQ_API_KEY)
 MODEL_NAME = "llama-3.3-70b-versatile"
 
@@ -86,7 +88,9 @@ class ClipAnalyzer:
                     "input_type": None,
                     "total_frames": None,
                     "end_marker_received": False,
-                    "start_time": time.time()
+                    "start_time": time.time(),
+                    "camera_id": data.get('camera_id'),  # Store camera_id
+                    "session_id": data.get('session_id')  # Store session_id
                 }
             }
             if VERBOSE_LOGGING:
@@ -99,7 +103,7 @@ class ClipAnalyzer:
         # Store service data for this frame
         self.clip_buffers[clip_id]["frames"][frame_idx][service_name] = data
     
-    def mark_clip_complete(self, clip_id, total_frames, input_type):
+    def mark_clip_complete(self, clip_id, total_frames, input_type, camera_id=None, session_id=None):
         """Mark that all frames have been sent for this clip"""
         # Create clip buffer if it doesn't exist yet (END_OF_CLIP might arrive first)
         if clip_id not in self.clip_buffers:
@@ -109,13 +113,19 @@ class ClipAnalyzer:
                     "input_type": None,
                     "total_frames": None,
                     "end_marker_received": False,
-                    "start_time": time.time()
+                    "start_time": time.time(),
+                    "camera_id": camera_id,
+                    "session_id": session_id
                 }
             }
         
         self.clip_buffers[clip_id]["metadata"]["end_marker_received"] = True
         self.clip_buffers[clip_id]["metadata"]["total_frames"] = total_frames
         self.clip_buffers[clip_id]["metadata"]["input_type"] = input_type
+        if camera_id:
+            self.clip_buffers[clip_id]["metadata"]["camera_id"] = camera_id
+        if session_id:
+            self.clip_buffers[clip_id]["metadata"]["session_id"] = session_id
         
         if VERBOSE_LOGGING:
             print(f"\n🏁 END MARKER received for clip {clip_id}")
@@ -200,7 +210,8 @@ class ClipAnalyzer:
         print(f"\n{'='*70}")
         print(f"🔍 ANALYZING CLIP: {clip_id}")
         print(f"{'='*70}")
-        print(f"Input Type: {metadata['input_type'].upper()}")
+        input_type = metadata.get('input_type', 'unknown')
+        print(f"Input Type: {input_type.upper() if input_type else 'UNKNOWN'}")
         print(f"Total Frames: {metadata['total_frames']}")
         print(f"{'='*70}")
         
@@ -210,7 +221,8 @@ class ClipAnalyzer:
             "objects": [],
             "faces": [],
             "scenes": [],
-            "interactions": []
+            "interactions": [],
+            "actions": []  # NEW: Action recognition data
         }
         
         for frame_idx in sorted(frames.keys()):
@@ -228,6 +240,7 @@ class ClipAnalyzer:
             all_data["faces"].append(frame_data.get("facial_expression_results", {}))
             all_data["scenes"].append(frame_data.get("scene_understanding_results", {}))
             all_data["interactions"].append(frame_data.get("interaction_analysis_results", {}))
+            all_data["actions"].append(frame_data.get("action_recognition_results", {}))  # NEW
         
         # Check for weapons across all frames
         weapons_detected = self._check_for_weapons(all_data["objects"])
@@ -247,6 +260,8 @@ class ClipAnalyzer:
         # Parse LLM response and build result
         result = {
             "clip_id": clip_id,
+            "camera_id": metadata.get("camera_id"),  # Add camera_id
+            "session_id": metadata.get("session_id"),  # Add session_id
             "input_type": metadata["input_type"],
             "total_frames": metadata["total_frames"],
             "analysis_timestamp": datetime.now().isoformat(),
@@ -261,8 +276,14 @@ class ClipAnalyzer:
         }
         
         # Send result to output topic
+        print(f"\n📤 Publishing decision result:")
+        print(f"   clip_id: {result.get('clip_id', 'N/A')}")
+        print(f"   camera_id: {result.get('camera_id', 'N/A')}")
+        print(f"   session_id: {result.get('session_id', 'N/A')}")
+        print(f"   verdict: {result.get('verdict', 'N/A')}")
         producer.send(OUTPUT_TOPIC, value=result)
         producer.flush()
+        print(f"✅ Decision result published to {OUTPUT_TOPIC}")
         
         # Mark as completed
         self.completed_clips.add(clip_id)
@@ -325,6 +346,7 @@ AVAILABLE DATA:
 - Facial expressions and emotions
 - Scene descriptions
 - Person interactions and spatial relationships
+- Temporal action recognition (fighting, assault, theft, vandalism, etc.)
 
 {'⚠️ WEAPONS DETECTED: ' + str(len(weapons_detected)) + ' weapon(s) found across frames' if weapons_detected else ''}
 
@@ -540,9 +562,11 @@ while True:
                         clip_id = data.get("clip_id")
                         total_frames = data.get("total_frames")
                         input_type = data.get("input_type")
+                        camera_id = data.get("camera_id")
+                        session_id = data.get("session_id")
                         
                         print(f"🎯 Detected END_OF_CLIP marker from {topic}!")
-                        analyzer.mark_clip_complete(clip_id, total_frames, input_type)
+                        analyzer.mark_clip_complete(clip_id, total_frames, input_type, camera_id, session_id)
                         continue
                     else:
                         # This is a regular frame, skip it (we only care about END marker)

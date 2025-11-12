@@ -1,13 +1,12 @@
 import cv2
 import json
 import numpy as np
+import os
 from deepface import DeepFace
 from kafka import KafkaConsumer, KafkaProducer
 
 # --- Kafka Configuration ---
-# KAFKA_BROKER = 'kafka:29092'
-KAFKA_BROKER = 'localhost:9092'
-# KAFKA_BROKER = '10.139.40.73:9092'
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
 INPUT_TOPIC = 'raw_video_frames'
 OUTPUT_TOPIC = 'facial_expression_results'
 

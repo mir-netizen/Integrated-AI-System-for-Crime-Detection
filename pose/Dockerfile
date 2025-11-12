@@ -9,7 +9,10 @@ COPY requirement.txt .
 
 RUN pip install --no-cache-dir -r requirement.txt
 
+# Copy model files
 COPY osnet_x0_25_msmt17.pt .
+COPY osnet_x0_25_msmt17.pth .
+COPY yolov8n-pose.pt .
 COPY pose.py .
 
 CMD ["python", "pose.py"]

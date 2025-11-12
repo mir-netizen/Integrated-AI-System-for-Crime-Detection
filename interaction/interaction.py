@@ -1,12 +1,12 @@
 import json
+import os
 from kafka import KafkaConsumer, KafkaProducer
 from itertools import combinations
 import numpy as np
 from collections import defaultdict, deque
 
 # --- Configuration ---
-# KAFKA_BROKER = 'kafka:29092'
-KAFKA_BROKER = 'localhost:9092'
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
 INPUT_TOPIC = 'pose_estimation_results'
 OUTPUT_TOPIC = 'interaction_analysis_results'
 INTERACTION_DISTANCE_THRESHOLD = 200 # Pixel distance between centers to be considered 'interacting'

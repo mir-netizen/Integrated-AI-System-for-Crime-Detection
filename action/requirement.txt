@@ -1,0 +1,15 @@
+# Action Recognition Service Requirements
+
+# Core dependencies
+opencv-python>=4.8.0
+kafka-python>=2.0.2
+numpy>=1.24.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# PyTorch Video for action recognition (X3D model - CPU optimized)
+pytorchvideo>=0.1.5
+fvcore>=0.1.5
+
+# Optional: For model loading and caching
+iopath>=0.1.10

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surveillance Analysis - Upload & Process</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #00ff88;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .upload-section {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 2px solid #00ff88;
+            text-align: center;
+        }
+
+        .upload-section h2 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .file-type-selector {
+            margin: 20px 0;
+        }
+
+        .file-type-selector button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-type-selector button.active {
+            background: #00ff88;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .file-type-selector button:hover {
+            transform: scale(1.05);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .file-input-label:hover {
+            transform: scale(1.05);
+            border-color: #00ff88;
+        }
+
+        #fileName {
+            display: block;
+            margin-top: 15px;
+            color: #00ff88;
+            font-size: 1.1em;
+            min-height: 25px;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            color: #ffaa00;
+            font-size: 0.9em;
+        }
+
+        .start-btn {
+            margin-top: 20px;
+            padding: 15px 60px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .processing-indicator {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 170, 0, 0.2);
+            border-radius: 10px;
+            border: 2px solid #ffaa00;
+        }
+
+        .processing-indicator.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+            margin-top: 20px;
+        }
+
+        .module-card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .module-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .module-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .module-status {
+            margin-left: auto;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-processing {
+            background: #ffaa00;
+            color: #000;
+        }
+
+        .status-complete {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .status-waiting {
+            background: #888;
+            color: #fff;
+        }
+
+        .module-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .output-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #00ddff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 0.95em;
+        }
+
+        .output-label {
+            color: #00ff88;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-violent { background: #ff4444; }
+        .badge-suspicious { background: #ffaa00; }
+        .badge-normal { background: #44ff44; color: #000; }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎥 Surveillance Analysis System</h1>
+        <p>Upload image or video and get AI-powered final decision analysis</p>
+    </div>
+
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h2>📤 Upload File for Analysis</h2>
+            
+            <div class="file-type-selector">
+                <button id="imageBtn" class="active" onclick="selectFileType('image')">
+                    🖼️ Image
+                </button>
+                <button id="videoBtn" onclick="selectFileType('video')">
+                    🎥 Video
+                </button>
+            </div>
+
+            <div class="file-info" id="fileInfo">
+                Supported formats: JPG, PNG, JPEG, BMP
+            </div>
+
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" accept="image/*" onchange="displayFileName()">
+                <label for="fileInput" class="file-input-label">
+                    📁 Choose File
+                </label>
+            </div>
+            <div id="fileName">No file selected</div>
+            
+            <button class="start-btn" id="startBtn" onclick="startAnalysis()" disabled>
+                🚀 START ANALYSIS
+            </button>
+
+            <div class="processing-indicator" id="processingIndicator">
+                <span class="spinner"></span>
+                <strong>Processing video through all 7 AI modules...</strong>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <!-- Final Decision Module (Only) -->
+            <div class="module-card" style="max-width: 1200px; margin: 0 auto;">
+                <div class="module-header">
+                    <div class="module-icon">🧠</div>
+                    <div class="module-title">Final Decision - AI Analysis Result</div>
+                    <div class="module-status status-waiting" id="decision-status">WAITING</div>
+                </div>
+                <div class="module-content" id="decision-output">
+                    <div style="text-align: center; color: #888; padding: 20px;">
+                        Waiting for analysis results...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+
+        let currentFileType = 'image';
+
+        function selectFileType(type) {
+            currentFileType = type;
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const imageBtn = document.getElementById('imageBtn');
+            const videoBtn = document.getElementById('videoBtn');
+            
+            if (type === 'image') {
+                fileInput.accept = 'image/*';
+                fileInfo.textContent = 'Supported formats: JPG, PNG, JPEG, BMP';
+                imageBtn.classList.add('active');
+                videoBtn.classList.remove('active');
+            } else {
+                fileInput.accept = 'video/*';
+                fileInfo.textContent = 'Supported formats: MP4, AVI, MOV, MKV, FLV, WMV';
+                videoBtn.classList.add('active');
+                imageBtn.classList.remove('active');
+            }
+            
+            // Reset file selection
+            fileInput.value = '';
+            document.getElementById('fileName').textContent = 'No file selected';
+            document.getElementById('startBtn').disabled = true;
+        }
+
+        function displayFileName() {
+            const input = document.getElementById('fileInput');
+            const fileNameDisplay = document.getElementById('fileName');
+            const startBtn = document.getElementById('startBtn');
+            
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+                fileNameDisplay.textContent = `✅ Selected: ${file.name} (${fileSize} MB)`;
+                startBtn.disabled = false;
+            } else {
+                fileNameDisplay.textContent = 'No file selected';
+                startBtn.disabled = true;
+            }
+        }
+
+        async function startAnalysis() {
+            const fileInput = document.getElementById('fileInput');
+            const startBtn = document.getElementById('startBtn');
+            const processingIndicator = document.getElementById('processingIndicator');
+            const resultsSection = document.getElementById('resultsSection');
+
+            if (!fileInput.files.length) {
+                alert('Please select a file first!');
+                return;
+            }
+
+            // Disable button and show processing
+            startBtn.disabled = true;
+            processingIndicator.classList.add('active');
+            resultsSection.classList.add('active');
+
+            // Update processing text
+            processingIndicator.querySelector('strong').textContent = 
+                `Processing ${currentFileType} through AI pipeline for final decision...`;
+
+            // Reset decision status
+            const decisionStatus = document.getElementById('decision-status');
+            decisionStatus.textContent = 'PROCESSING';
+            decisionStatus.className = 'module-status status-processing';
+
+            // Upload file
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    sessionId = result.session_id;
+                    console.log('Video uploaded, session ID:', sessionId);
+                    
+                    // Start polling for results
+                    pollResults();
+                } else {
+                    alert('Error uploading video: ' + result.message);
+                    processingIndicator.classList.remove('active');
+                    startBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading video. Please try again.');
+                processingIndicator.classList.remove('active');
+                startBtn.disabled = false;
+            }
+        }
+
+        function pollResults() {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/results/${sessionId}`);
+                    const data = await response.json();
+
+                    if (data.status === 'complete') {
+                        clearInterval(interval);
+                        document.getElementById('processingIndicator').classList.remove('active');
+                        document.getElementById('startBtn').disabled = false;
+                        displayResults(data.results);
+                    } else if (data.status === 'processing') {
+                        // Update individual module statuses
+                        updateModuleStatuses(data.results);
+                    } else if (data.status === 'error') {
+                        clearInterval(interval);
+                        alert('Error processing video: ' + data.message);
+                        document.getElementById('processingIndicator').classList.remove('active');
+                        document.getElementById('startBtn').disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+
+        function updateModuleStatuses(results) {
+            // Only check decision module
+            if (results.decision && results.decision.length > 0) {
+                const status = document.getElementById('decision-status');
+                status.textContent = 'COMPLETE';
+                status.className = 'module-status status-complete';
+                displayModuleOutput('decision', results.decision);
+            }
+        }
+
+        function displayResults(results) {
+            // Only display decision output
+            displayModuleOutput('decision', results.decision || []);
+        }
+
+        function displayModuleOutput(module, data) {
+            const outputDiv = document.getElementById('decision-output');
+            
+            if (!data || data.length === 0) {
+                outputDiv.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No decision data available yet. Please wait for processing to complete.</div>';
+                return;
+            }
+
+            let html = '';
+            
+            // Display decision results
+            data.forEach((item, index) => {
+                const verdict = item.verdict || 'UNKNOWN';
+                const severity = item.severity || 'LOW';
+                const badgeClass = severity === 'HIGH' || severity === 'CRITICAL' ? 'badge-violent' : 
+                                 severity === 'MEDIUM' ? 'badge-suspicious' : 'badge-normal';
+                const threatLevel = item.threat_level || 0;
+                const threatBadgeClass = threatLevel >= 7 ? 'badge-violent' : 
+                                        threatLevel >= 4 ? 'badge-suspicious' : 'badge-normal';
+                
+                // Format reasons array
+                const reasons = item.reasons || [];
+                const reasonsText = reasons.length > 0 ? reasons.map(r => `• ${r}`).join('<br>') : 'No specific reasons provided';
+                
+                html += `
+                    <div class="output-item" style="border-left-width: 5px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <h3 style="color: #00ff88; margin: 0;">Analysis Result #${index + 1}</h3>
+                            <span class="badge ${badgeClass}" style="font-size: 1em;">${verdict}</span>
+                        </div>
+                        <div style="margin: 8px 0;"><span class="output-label">📹 Clip ID:</span>${(item.clip_id || 'N/A').substring(0, 16)}...</div>
+                        <div style="margin: 8px 0;"><span class="output-label">� Verdict:</span>${verdict}</div>
+                        <div style="margin: 8px 0;"><span class="output-label">⚠️ Threat Level:</span><span class="badge ${threatBadgeClass}">${threatLevel}/10</span></div>
+                        <div style="margin: 8px 0;"><span class="output-label">📊 Severity:</span><span class="badge ${badgeClass}">${severity}</span></div>
+                        <div style="margin: 8px 0;"><span class="output-label">✅ Confidence:</span>${((item.confidence || 0) * 100).toFixed(1)}%</div>
+                        <div style="margin: 8px 0;"><span class="output-label">🔫 Weapons:</span>${item.weapons_detected || 'None'}</div>
+                        <div style="margin: 8px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                            <span class="output-label">� Summary:</span>
+                            <p style="margin-top: 5px; color: #ddd; line-height: 1.6;">${item.summary || 'No summary available'}</p>
+                        </div>
+                        <div style="margin: 8px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                            <span class="output-label">💡 Key Reasons:</span>
+                            <p style="margin-top: 5px; color: #ddd; line-height: 1.6;">${reasonsText}</p>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.85em; color: #888;">
+                            <span>⏰ Analyzed at: ${item.analysis_timestamp || new Date().toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            outputDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

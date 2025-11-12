@@ -1,0 +1,87 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+
+\title{A Clip-Based Multi-Model Surveillance Analysis System with LLM-Driven Reasoning}
+
+\author{\IEEEauthorblockN{Rishav Kumar Agrawal, Maharishi Bhowmick, Sachin Koli, Mir Abbas Hussain, Dr. Vaishali Sindhe}
+\IEEEauthorblockA{PES University, India \\
+\{rishav, maharishi, sachin, mirabbas, vaishali\}@pes.edu (placeholder)}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present a clip-based surveillance analysis system that combines six specialised AI services with a Large Language Model (LLM) aggregator to produce a single, human-readable verdict (SUSPICIOUS or SAFE) for short image/video clips. Our microservices architecture runs object/weapon detection, pose estimation and tracking, facial expression analysis, scene captioning, interaction and motion analysis, and temporal action recognition. Per-frame outputs are aggregated, token-optimized, and passed to a Groq-hosted LLM for contextual reasoning and explainable decisions. This paper describes the system design, component integration, token-reduction strategy, and implementation details. Placeholders are included where formal testing and evaluation metrics will be inserted after experimental validation.
+\end{abstract}
+
+\begin{IEEEkeywords}
+surveillance, multi-modal fusion, YOLO, BLIP, DeepFace, BoTSORT, action recognition, LLM, explainable AI
+\end{IEEEkeywords}
+
+\section{Introduction}
+Automated analysis of surveillance footage is a critical tool for modern security operations. Traditional approaches rely on monolithic action-recognition models trained end-to-end on labeled datasets. In contrast, we propose a clip-based, microservices architecture that integrates multiple specialised models and an LLM-based decision aggregator to combine multimodal signals and produce a single, explainable verdict per clip. The system is optimized for short clips (up to 10 seconds) and emphasizes production-readiness: fault tolerance, token efficiency for LLM queries, and interpretable outputs.
+
+This work was implemented as an engineering prototype in Python using Kafka for messaging and Docker for service deployment. The codebase is available at: \url{https://github.com/Rishav1git/Capstone}.
+
+\section{Related Work}
+Prior work on video-based crime and anomaly detection often focuses on end-to-end action recognition using 3D-CNNs or CNN-LSTM hybrids~\cite{redmon2016you, feichtenhofer2020x3d}. Recent advances in object detection (YOLO family)~\cite{ultralytics2023yolov8} and image captioning (BLIP)~\cite{li2022blip} enable richer multimodal scene understanding. Facial expression recognition methods such as DeepFace~\cite{taigman2014deepface} provide emotional context. Tracking and re-identification approaches like BoTSORT~\cite{botsort2022} improve person-level continuity. Our approach differs by combining these specialised modules and using an LLM (Groq-hosted Llama family model) for high-level, explainable decision-making rather than a single end-to-end classifier.
+
+\section{System Architecture}
+Figure~\ref{fig:architecture} shows the high-level architecture: a frame extractor publishes frames to a Kafka topic, six parallel AI services consume frames and publish per-frame JSON results, and a decision aggregator waits for an END_OF_CLIP marker, aggregates the per-frame data, reduces tokens, and calls an LLM to get the final verdict.
+
+\begin{figure}[!t]
+  \centering
+  % Placeholder: replace with actual architecture image
+  \fbox{\parbox[c][5cm][c]{.95\linewidth}{\centering Architecture figure placeholder (paper/figures/architecture.png)}}
+  \caption{System architecture — frame extraction, parallel AI services, Kafka topics, and LLM aggregator.}
+  \label{fig:architecture}
+\end{figure}
+
+\section{Methods}
+The system is divided into the following components:
+\begin{enumerate}
+  \item Frame extraction: `video_demo.py` extracts frames at 2 FPS (configurable) and publishes an `END_OF_CLIP` marker when complete.
+  \item Object detection: general YOLOv8 model for COCO objects (`object/object.py`) and a custom YOLO model for weapons (`object/object1.py`). Confidence thresholds are 0.2 (general) and 0.5 (weapons).
+  \item Pose estimation and tracking: YOLOv8-pose combined with BoTSORT for robust tracking and re-identification (`pose/pose.py`). Keypoints and track IDs are published per frame.
+  \item Facial expression analysis: DeepFace-based detection and dominant emotion extraction (`face/face.py`).
+  \item Scene captioning: BLIP-based captioning to provide high-level context (`scene/blip.py`).
+  \item Interaction and motion analysis: spatial grouping and motion metrics (velocity, acceleration, jerk, periodicity) to describe movement patterns (`interaction/interaction.py`).
+  \item Action recognition: hybrid approach using pose heuristics, optical-flow/motion heuristics, and an X3D (pytorchvideo) model when available (`action/action.py`).
+  \item Decision aggregator: `decision/decision_clip.py` buffers per-frame outputs, constructs a compact prompt (token-optimized) and sends it to a Groq-hosted LLM to obtain a JSON verdict.
+\end{enumerate}
+
+\section{Implementation Details}
+The prototype is implemented in Python 3.8+, uses Kafka for inter-service messaging, and Docker for containerizing services when required (pose service). Models used include YOLOv8 (Ultralytics), a custom `knifegun1.pt` weapon detector, BLIP for captions, DeepFace for emotion, BoTSORT for tracking, and X3D for action recognition where available. The aggregator enforces a mandatory presence of pose estimates for each frame before full analysis to improve reliability.
+
+Token optimization is achieved by aggregating per-frame summaries instead of sending raw per-frame detections to the LLM. In our design notes we achieved a reported token reduction of 99.2% in internal optimizations (detailed metrics to be added after formal testing).
+
+\section{Evaluation and Results}
+Formal testing and quantitative evaluation are not yet completed. Placeholders below indicate where experimental protocol and measured results will be inserted after user validation and test runs.
+
+\subsection{Evaluation Protocol (placeholder)}
+Environment, dataset composition, test split, and evaluation metrics (accuracy, precision, recall, F1, AUC) will be described here. At present the README reports observed accuracy ranges on demo data (images: 90--95\%, videos: 85--95\%). These will be replaced with formal numbers and dataset descriptions in the final manuscript.
+
+\subsection{Results (placeholder)}
+Insert tables and figures with quantitative results here once experiments are completed.
+
+\section{Discussion}
+The clip-based approach trades off real-time per-person alerts for a single, holistic verdict per short clip. This simplifies downstream workflows (incident review, evidence collection) and reduces false positives caused by noisy per-person detections. The LLM aggregator adds contextual reasoning and explainability, at the cost of an LLM call per clip and the need to optimize tokens. The modular microservices design improves extensibility and fault isolation, enabling independent upgrades of detection modules.
+
+Limitations include dependence on pre-trained modules (possible domain gap), limited temporal context for long-duration behaviors (clips are truncated to 10s), and the current lack of a formal evaluation on public benchmark datasets. Future work will include rigorous evaluation on curated datasets (e.g., UCF-Crime) and user studies for explanation usefulness.
+
+\section{Conclusion}
+We described a production-oriented clip analysis system that fuses multiple specialised AI modules and leverages an LLM for final decision-making and explanations. The repository (\url{https://github.com/Rishav1git/Capstone}) contains the full implementation. Experimental evaluation will be added to the paper after formal testing; placeholders are included for reproducibility details and numeric results.
+
+\section*{Acknowledgment}
+We thank the PES University community for support during this project. Code is available under the repository linked above.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

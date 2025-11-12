@@ -9,7 +9,6 @@ COPY requirement.txt .
 
 RUN pip install --no-cache-dir -r requirement.txt
 
+COPY decision_clip.py .
 
-COPY decision.py .
-
-CMD ["python", "decision.py"]
+CMD ["python", "decision_clip.py"]

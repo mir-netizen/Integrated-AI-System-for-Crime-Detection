@@ -9,7 +9,10 @@ COPY requirement.txt .
 
 RUN pip install --no-cache-dir -r requirement.txt
 
+# Copy model files and scripts
 COPY yolov8n.pt .
+COPY knifegun1.pt .
 COPY object.py .
+COPY object1.py .
 
 CMD ["python", "object.py"]

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Modules Output - Surveillance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 3px solid #00ff88;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .nav-links {
+            margin-top: 10px;
+        }
+
+        .nav-links a {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #00ddff;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+        }
+
+        .module-card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .module-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .module-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .module-status {
+            margin-left: auto;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .status-idle {
+            background: #888;
+            color: #fff;
+        }
+
+        .module-content {
+            position: relative;
+        }
+
+        .image-viewer {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .module-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .module-image.active {
+            display: block;
+        }
+
+        .image-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .control-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .frame-info {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .legend {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 5px;
+        }
+
+        .legend-box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 2px solid;
+            vertical-align: middle;
+        }
+
+        .pose-legend { border-color: #00ff00; background: rgba(0, 255, 0, 0.2); }
+        .object-legend { border-color: #00ff00; background: rgba(0, 255, 0, 0.2); }
+        .weapon-legend { border-color: #ff0000; background: rgba(255, 0, 0, 0.3); }
+        .face-happy-legend { border-color: #00ff00; background: rgba(0, 255, 0, 0.2); }
+        .face-angry-legend { border-color: #ff0000; background: rgba(255, 0, 0, 0.3); }
+        .face-neutral-legend { border-color: #ffff00; background: rgba(255, 255, 0, 0.2); }
+
+        .auto-refresh {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 1400px) {
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖼️ Visual Modules Output - Real-time Detection</h1>
+        <div class="nav-links">
+            <a href="/">← Back to Dashboard</a>
+            <a href="/upload">📤 Upload Video</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="modules-grid">
+            <!-- 1. POSE Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🧍</div>
+                    <div class="module-title">Pose Estimation</div>
+                    <div class="module-status status-idle" id="pose-status">IDLE</div>
+                </div>
+                <div class="module-content">
+                    <div class="image-viewer" id="pose-viewer">
+                        <div class="no-data">Waiting for pose data...</div>
+                    </div>
+                    <div class="image-controls" style="display: none;" id="pose-controls">
+                        <button class="control-btn" onclick="prevImage('pose')">◀ Previous</button>
+                        <span class="frame-info" id="pose-info">Frame 1 / 1</span>
+                        <button class="control-btn" onclick="nextImage('pose')">Next ▶</button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-box pose-legend"></span>
+                            <span>Skeleton Lines</span>
+                        </div>
+                        <div class="legend-item">
+                            <span style="color: #ff0000;">●</span>
+                            <span>Keypoints (17 points)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. OBJECT Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">📦</div>
+                    <div class="module-title">Object Detection</div>
+                    <div class="module-status status-idle" id="object-status">IDLE</div>
+                </div>
+                <div class="module-content">
+                    <div class="image-viewer" id="object-viewer">
+                        <div class="no-data">Waiting for object data...</div>
+                    </div>
+                    <div class="image-controls" style="display: none;" id="object-controls">
+                        <button class="control-btn" onclick="prevImage('object')">◀ Previous</button>
+                        <span class="frame-info" id="object-info">Frame 1 / 1</span>
+                        <button class="control-btn" onclick="nextImage('object')">Next ▶</button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-box object-legend"></span>
+                            <span>Detected Objects</span>
+                        </div>
+                        <div class="legend-item">
+                            <span>Green boxes with labels and confidence</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. WEAPON Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">🔫</div>
+                    <div class="module-title">Weapon Detection</div>
+                    <div class="module-status status-idle" id="weapon-status">IDLE</div>
+                </div>
+                <div class="module-content">
+                    <div class="image-viewer" id="weapon-viewer">
+                        <div class="no-data">Waiting for weapon data...</div>
+                    </div>
+                    <div class="image-controls" style="display: none;" id="weapon-controls">
+                        <button class="control-btn" onclick="prevImage('weapon')">◀ Previous</button>
+                        <span class="frame-info" id="weapon-info">Frame 1 / 1</span>
+                        <button class="control-btn" onclick="nextImage('weapon')">Next ▶</button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-box weapon-legend"></span>
+                            <span>⚠️ WEAPON DETECTED (RED)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span>Knife, Gun, Sharp objects</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. FACE Module -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">👤</div>
+                    <div class="module-title">Facial Expression</div>
+                    <div class="module-status status-idle" id="face-status">IDLE</div>
+                </div>
+                <div class="module-content">
+                    <div class="image-viewer" id="face-viewer">
+                        <div class="no-data">Waiting for face data...</div>
+                    </div>
+                    <div class="image-controls" style="display: none;" id="face-controls">
+                        <button class="control-btn" onclick="prevImage('face')">◀ Previous</button>
+                        <span class="frame-info" id="face-info">Frame 1 / 1</span>
+                        <button class="control-btn" onclick="nextImage('face')">Next ▶</button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-box face-happy-legend"></span>
+                            <span>Happy (Green)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-box face-angry-legend"></span>
+                            <span>Angry/Fear (Red)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-box face-neutral-legend"></span>
+                            <span>Neutral (Yellow)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="auto-refresh pulse">
+        🔄 Auto-refreshing every 3 seconds
+    </div>
+
+    <script>
+        // Store current indices for each module
+        const moduleState = {
+            pose: { index: 0, total: 0 },
+            object: { index: 0, total: 0 },
+            weapon: { index: 0, total: 0 },
+            face: { index: 0, total: 0 }
+        };
+
+        function updateModules() {
+            updatePoseVisuals();
+            updateObjectVisuals();
+            updateWeaponVisuals();
+            updateFaceVisuals();
+        }
+
+        function updatePoseVisuals() {
+            fetch('/api/modules/pose')
+                .then(response => response.json())
+                .then(data => {
+                    const status = document.getElementById('pose-status');
+                    const viewer = document.getElementById('pose-viewer');
+                    const controls = document.getElementById('pose-controls');
+
+                    if (data && data.length > 0) {
+                        status.textContent = 'ACTIVE';
+                        status.className = 'module-status status-active';
+                        controls.style.display = 'flex';
+                        moduleState.pose.total = data.length;
+                        
+                        // Keep current index in bounds
+                        if (moduleState.pose.index >= data.length) {
+                            moduleState.pose.index = data.length - 1;
+                        }
+                        
+                        displayPoseImage(moduleState.pose.index);
+                    } else {
+                        status.textContent = 'IDLE';
+                        status.className = 'module-status status-idle';
+                        controls.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching pose:', error));
+        }
+
+        function displayPoseImage(index) {
+            const viewer = document.getElementById('pose-viewer');
+            const info = document.getElementById('pose-info');
+            
+            viewer.innerHTML = `<img src="/api/visualize/pose/${index}?t=${Date.now()}" 
+                                     class="module-image active" 
+                                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22>Image not available</text></svg>'">`;
+            info.textContent = `Frame ${index + 1} / ${moduleState.pose.total}`;
+        }
+
+        function updateObjectVisuals() {
+            fetch('/api/modules/object')
+                .then(response => response.json())
+                .then(data => {
+                    const status = document.getElementById('object-status');
+                    const controls = document.getElementById('object-controls');
+
+                    if (data && data.length > 0) {
+                        status.textContent = 'ACTIVE';
+                        status.className = 'module-status status-active';
+                        controls.style.display = 'flex';
+                        moduleState.object.total = data.length;
+                        
+                        if (moduleState.object.index >= data.length) {
+                            moduleState.object.index = data.length - 1;
+                        }
+                        
+                        displayObjectImage(moduleState.object.index);
+                    } else {
+                        status.textContent = 'IDLE';
+                        status.className = 'module-status status-idle';
+                        controls.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching object:', error));
+        }
+
+        function displayObjectImage(index) {
+            const viewer = document.getElementById('object-viewer');
+            const info = document.getElementById('object-info');
+            
+            viewer.innerHTML = `<img src="/api/visualize/object/${index}?t=${Date.now()}" 
+                                     class="module-image active" 
+                                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22>Image not available</text></svg>'">`;
+            info.textContent = `Frame ${index + 1} / ${moduleState.object.total}`;
+        }
+
+        function updateWeaponVisuals() {
+            fetch('/api/modules/weapon')
+                .then(response => response.json())
+                .then(data => {
+                    const status = document.getElementById('weapon-status');
+                    const controls = document.getElementById('weapon-controls');
+
+                    if (data && data.length > 0) {
+                        status.textContent = 'ACTIVE';
+                        status.className = 'module-status status-active';
+                        controls.style.display = 'flex';
+                        moduleState.weapon.total = data.length;
+                        
+                        if (moduleState.weapon.index >= data.length) {
+                            moduleState.weapon.index = data.length - 1;
+                        }
+                        
+                        displayWeaponImage(moduleState.weapon.index);
+                    } else {
+                        status.textContent = 'IDLE';
+                        status.className = 'module-status status-idle';
+                        controls.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching weapon:', error));
+        }
+
+        function displayWeaponImage(index) {
+            const viewer = document.getElementById('weapon-viewer');
+            const info = document.getElementById('weapon-info');
+            
+            viewer.innerHTML = `<img src="/api/visualize/weapon/${index}?t=${Date.now()}" 
+                                     class="module-image active" 
+                                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22>No weapons detected</text></svg>'">`;
+            info.textContent = `Frame ${index + 1} / ${moduleState.weapon.total}`;
+        }
+
+        function updateFaceVisuals() {
+            fetch('/api/modules/face')
+                .then(response => response.json())
+                .then(data => {
+                    const status = document.getElementById('face-status');
+                    const controls = document.getElementById('face-controls');
+
+                    if (data && data.length > 0) {
+                        status.textContent = 'ACTIVE';
+                        status.className = 'module-status status-active';
+                        controls.style.display = 'flex';
+                        moduleState.face.total = data.length;
+                        
+                        if (moduleState.face.index >= data.length) {
+                            moduleState.face.index = data.length - 1;
+                        }
+                        
+                        displayFaceImage(moduleState.face.index);
+                    } else {
+                        status.textContent = 'IDLE';
+                        status.className = 'module-status status-idle';
+                        controls.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching face:', error));
+        }
+
+        function displayFaceImage(index) {
+            const viewer = document.getElementById('face-viewer');
+            const info = document.getElementById('face-info');
+            
+            viewer.innerHTML = `<img src="/api/visualize/face/${index}?t=${Date.now()}" 
+                                     class="module-image active" 
+                                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22>Image not available</text></svg>'">`;
+            info.textContent = `Frame ${index + 1} / ${moduleState.face.total}`;
+        }
+
+        function prevImage(module) {
+            if (moduleState[module].index > 0) {
+                moduleState[module].index--;
+                
+                switch(module) {
+                    case 'pose': displayPoseImage(moduleState[module].index); break;
+                    case 'object': displayObjectImage(moduleState[module].index); break;
+                    case 'weapon': displayWeaponImage(moduleState[module].index); break;
+                    case 'face': displayFaceImage(moduleState[module].index); break;
+                }
+            }
+        }
+
+        function nextImage(module) {
+            if (moduleState[module].index < moduleState[module].total - 1) {
+                moduleState[module].index++;
+                
+                switch(module) {
+                    case 'pose': displayPoseImage(moduleState[module].index); break;
+                    case 'object': displayObjectImage(moduleState[module].index); break;
+                    case 'weapon': displayWeaponImage(moduleState[module].index); break;
+                    case 'face': displayFaceImage(moduleState[module].index); break;
+                }
+            }
+        }
+
+        // Initial load
+        updateModules();
+
+        // Auto-refresh every 3 seconds
+        setInterval(updateModules, 3000);
+    </script>
+</body>
+</html>

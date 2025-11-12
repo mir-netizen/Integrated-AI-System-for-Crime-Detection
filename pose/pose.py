@@ -1,6 +1,7 @@
 import cv2
 import json
 import numpy as np
+import os
 from kafka import KafkaConsumer, KafkaProducer
 import torch
 import torchreid
@@ -10,7 +11,7 @@ from pathlib import Path
 from PIL import Image
 
 # --- Configuration ---
-KAFKA_BROKER = 'kafka:29092'
+KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
 INPUT_TOPIC = 'raw_video_frames'
 OUTPUT_TOPIC = 'pose_estimation_results'
 
