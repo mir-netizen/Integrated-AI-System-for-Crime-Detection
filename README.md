@@ -4,40 +4,39 @@
 
 This system analyzes images or short video clips (up to 10 seconds) to determine if they contain suspicious activity. Instead of tracking individual people, it provides a **single overall verdict** for the entire clip using 6 AI services and an LLM-based decision aggregator.
 
-**Current Status**: ✅ **98% Production Ready** - Docker deployment complete!
 
 ## Key Features
 
-✅ **Simple Input/Output**
+**Simple Input/Output**
 - Input: Image file OR 10-second video
 - Output: SUSPICIOUS or SAFE + confidence score + detailed explanation
 - Single command execution: `start_clip_analysis.bat <file>`
 
-✅ **Holistic Analysis**
+**Holistic Analysis**
 - Analyzes ALL people in the scene together
 - Considers full context (poses, objects, emotions, scene, interactions)
 - Temporal behavior patterns (for videos)
 - LLM-powered reasoning (Groq llama-3.3-70b-versatile)
 
-✅ **High Reliability**
+**High Reliability**
 - Image: 90-95% accuracy
 - Video: 85-95% accuracy
 - Waits for all service data before making decision
 - Comprehensive error handling and retry logic
 
-✅ **Weapon Detection**
+**Weapon Detection**
 - Automatic HIGH threat alert for visible weapons (guns, knives)
 - Custom YOLOv8 model trained for weapon detection
 - Combined with pose analysis for threat assessment
 
-✅ **Token Optimization**
+**Token Optimization**
 - 99.2% token reduction (101K → 800 tokens)
 - Data aggregation instead of per-frame details
 - Optimized for Groq free tier (100K daily limit)
 
 ## Architecture
 
-```
+
                     Input File (image/video)
                              ↓
                     video_demo.py (Frame Extractor)
@@ -73,7 +72,7 @@ This system analyzes images or short video clips (up to 10 seconds) to determine
                     - Color-coded severity display
                     - Formatted console output
                     - Saves to JSON file
-```
+
 
 ## Output Format
 
@@ -97,19 +96,19 @@ This system analyzes images or short video clips (up to 10 seconds) to determine
 
 ### Installation
 
-```bash
+bash
 # Install Python packages
 pip install opencv-python kafka-python groq python-dotenv colorama
 
 # Set up environment
 echo "GROQ_API_KEY=your_api_key_here" > .env
-```
+
 
 ### Running Analysis
 
 **Option 1: Docker Deployment (Recommended)**
 
-```bash
+bash
 # Start all services
 docker-compose up --build
 
@@ -117,21 +116,21 @@ docker-compose up --build
 # Open browser: http://localhost:5000
 
 # Upload image or video through web interface
-```
+
 
 **Option 2: Using the startup script (Windows Local)**
 
-```batch
+batch
 # Analyze an image
 start_clip_analysis_enhanced.bat img.jpg
 
 # Analyze a video
 start_clip_analysis_enhanced.bat test_video.mp4
-```
+
 
 **Option 3: Manual startup (Local)**
 
-```bash
+bash
 # 1. Start all services (in separate terminals)
 cd pose && docker-compose up
 python object/object.py
@@ -149,11 +148,11 @@ python output_clip.py
 python video_demo.py img.jpg
 # or
 python video_demo.py test_video.mp4
-```
+
 
 ## File Structure
 
-```
+
 NEW/
 ├── video_demo.py                    # Frame extraction service (276 lines)
 ├── output_clip.py                   # Results display service (122 lines)
@@ -192,7 +191,7 @@ NEW/
 ├── CLIP_ANALYSIS_README.md          # This file
 ├── LLM_OPTIMIZATION.md              # Token optimization documentation
 └── clip_analysis_results.json       # Output results (auto-generated)
-```
+
 
 ## Input Formats
 
@@ -212,26 +211,24 @@ NEW/
 - Maximum duration: 10 seconds
 - Processed at 2 FPS (~20 frames)
 - Longer videos will be truncated
-- ⚠️ **Note**: FPS should be changed to 1 for optimal token usage (see Known Issues)
+-  **Note**: FPS should be changed to 1 for optimal token usage (see Known Issues)
 
 ## Sample Output
 
 ### Console Output
 
-```
-================================================================================
-📊 CLIP ANALYSIS RESULT
-================================================================================
+CLIP ANALYSIS RESULT
+
 Clip ID:      clip_a1b2c3d4
 Input Type:   IMAGE
 Total Frames: 1
 
-🚨 VERDICT: SUSPICIOUS
+VERDICT: SUSPICIOUS
 Confidence:   92%
 Threat Level: 8/10
 Severity:     HIGH
 
-⚠️  WEAPONS DETECTED:
+WEAPONS DETECTED:
    ▪ Frame 0: gun (confidence: 95%)
 
 Detailed Reasons:
@@ -243,13 +240,13 @@ Summary:
    Individual holding firearm in parking lot with threatening posture. 
    Immediate security response recommended.
 ================================================================================
-```
+
 
 ### JSON Output
 
 Results are saved to `clip_analysis_results.json`:
 
-```json
+json Output
 {
   "clip_id": "clip_a1b2c3d4",
   "input_type": "image",
@@ -268,23 +265,23 @@ Results are saved to `clip_analysis_results.json`:
     {"frame": 0, "type": "gun", "confidence": 0.95}
   ]
 }
-```
+
 
 ## Configuration
 
 ### video_demo.py (Frame Extraction)
-```python
+python
 KAFKA_BROKER = 'localhost:9092'
 OUTPUT_TOPIC = 'raw_video_frames'
 CAMERA_ID = "Camera_01_Lobby"
-FPS = 2                         # ⚠️ Should be 1 for token optimization
+FPS = 2                         #  Should be 1 for token optimization
 MAX_VIDEO_DURATION = 10         # Maximum video length in seconds
 MAX_FRAMES = 20                 # FPS × MAX_VIDEO_DURATION (should be 10)
 REAL_TIME_PLAYBACK = False      # Process at maximum speed
-```
+
 
 ### decision_clip.py (LLM Aggregator)
-```python
+python
 KAFKA_BROKER = 'localhost:9092'
 MODEL_NAME = "llama-3.3-70b-versatile"  # Groq model
 CLIP_AGGREGATION_WINDOW = 60.0          # Wait up to 60s for all data
@@ -295,10 +292,10 @@ ALERT_LOG_FILE = "clip_analysis_results.json"
 
 # Required services (only pose is mandatory)
 REQUIRED_SERVICES = {"pose_estimation_results"}
-```
+
 
 ### AI Service Configuration
-```python
+python
 # All services now use environment variable
 KAFKA_BROKER = os.getenv('KAFKA_BROKER', 'localhost:9092')
 # - Docker: Uses 'kafka:29092' from docker-compose.yml
@@ -340,7 +337,7 @@ POSE_TOPIC = 'pose_estimation_results'
 OUTPUT_TOPIC = 'action_recognition_results'
 MODEL = 'PyTorchVideo X3D'
 FRAME_BUFFER_SIZE = 16              # frames
-```
+
 
 ## Comparison: Clip-Based vs Person-Tracking
 
@@ -356,14 +353,14 @@ FRAME_BUFFER_SIZE = 16              # frames
 
 ## Use Cases
 
-### ✅ Ideal For:
+### Ideal For:
 - **Incident Review**: Analyze recorded footage
 - **Evidence Collection**: Document suspicious events
 - **Batch Processing**: Review multiple clips
 - **Security Audits**: Assess location safety
 - **Training Data**: Label clips for ML training
 
-### ⚠️ Not Ideal For:
+### Not Ideal For:
 - **Live Monitoring**: Use person-tracking system instead
 - **Real-time Alerts**: Requires complete clip first
 - **Long Videos**: Limited to 10 seconds
@@ -401,7 +398,7 @@ FRAME_BUFFER_SIZE = 16              # frames
 
 ### Services not starting
 
-```bash
+bash
 # Check ports
 netstat -an | findstr "9092"  # Kafka
 
@@ -412,7 +409,7 @@ bin\windows\kafka-server-start.bat config\server.properties
 
 # Check Docker
 docker ps  # Should show pose service
-```
+
 
 ## Performance
 
@@ -465,7 +462,7 @@ Generated from: `MD5(filename + timestamp)[:8]`
 
 ### Process Multiple Files
 
-```bash
+bash
 # Bash
 for file in *.jpg; do
     python video_demo.py "$file"
@@ -477,7 +474,7 @@ Get-ChildItem *.jpg | ForEach-Object {
     python video_demo.py $_.FullName
     Start-Sleep -Seconds 60
 }
-```
+
 
 ### Custom Analysis
 
@@ -488,14 +485,14 @@ Modify `decision_clip.py` to customize:
 
 ## Known Issues & Remaining Tasks
 
-### ⚠️ Issue 1: FPS Configuration Not Optimized
+###  Issue 1: FPS Configuration Not Optimized
 **Problem**: `video_demo.py:15` shows `FPS = 2` but should be `1` for optimal token usage  
 **Impact**: Processing 20 frames instead of 10 = more LLM tokens  
 **Fix**: Change Line 15 to `FPS = 1` and Line 19 to `MAX_FRAMES = 10`  
-**Status**: ⚠️ Pending
+**Status**:  Pending
 **Priority**: Low (system works, optimization only)
 
-### ⚠️ Issue 2: Missing Error Handling in 5 Services
+###  Issue 2: Missing Error Handling in 5 Services
 **Problem**: No try-except around Kafka/model initialization in:
 - `object/object.py`
 - `object/object1.py`
@@ -505,32 +502,32 @@ Modify `decision_clip.py` to customize:
 
 **Impact**: Services crash on connection failure instead of graceful exit  
 **Fix**: Wrap Kafka clients in try-except with `exit(1)` on failure  
-**Status**: ⚠️ Pending
+**Status**:  Pending
 **Priority**: Medium (better error messages)
 
-### ✅ Issue 3: Kafka Broker Inconsistency - FIXED
+### Issue 3: Kafka Broker Inconsistency - FIXED
 **Problem**: Services used hardcoded Kafka broker addresses  
 **Solution**: All 9 services now use `os.getenv('KAFKA_BROKER', 'localhost:9092')`  
 **Impact**: Services automatically use correct broker (Docker or local)  
-**Status**: ✅ Fixed (November 12, 2025)
+**Status**: Fixed (November 12, 2025)
 
 ## Recent Changes
 
 ### November 12, 2025 - Docker Deployment Ready
-- ✅ Fixed all Dockerfiles (7 services)
-- ✅ Created gui/requirements.txt (was missing)
-- ✅ Added action_service to docker-compose.yml
-- ✅ Added weapon_service to docker-compose.yml
-- ✅ Enabled scene_service in docker-compose.yml
-- ✅ All services use environment variable for Kafka broker
-- ✅ Updated 9 Python files to support Docker/local deployment
-- ✅ Added KAFKA_BROKER=kafka:29092 to all services in docker-compose
-- ✅ Fixed face/Dockerfile (removed duplicate FROM)
-- ✅ Fixed decision/Dockerfile (now copies decision_clip.py)
-- ✅ Fixed scene/Dockerfile (added OpenCV dependencies)
-- ✅ Fixed object/Dockerfile (added weapon model files)
-- ✅ Fixed pose/Dockerfile (added all model files)
-- ✅ System now supports both local and Docker deployment
+- Fixed all Dockerfiles (7 services)
+- Created gui/requirements.txt (was missing)
+- Added action_service to docker-compose.yml
+- Added weapon_service to docker-compose.yml
+- Enabled scene_service in docker-compose.yml
+- All services use environment variable for Kafka broker
+- Updated 9 Python files to support Docker/local deployment
+- Added KAFKA_BROKER=kafka:29092 to all services in docker-compose
+- Fixed face/Dockerfile (removed duplicate FROM)
+- Fixed decision/Dockerfile (now copies decision_clip.py)
+- Fixed scene/Dockerfile (added OpenCV dependencies)
+- Fixed object/Dockerfile (added weapon model files)
+- Fixed pose/Dockerfile (added all model files)
+- System now supports both local and Docker deployment
 
 ## Docker Deployment
 
@@ -541,30 +538,30 @@ Modify `decision_clip.py` to customize:
 - GROQ_API_KEY in .env file
 
 **Deploy all services:**
-```bash
+bash
 docker-compose up --build
-```
+
 
 **Access GUI:**
-```
+
 http://localhost:5000
-```
+
 
 ### Docker Services (11 containers)
 
 | Service | Description | Port | Status |
 |---------|-------------|------|--------|
-| zookeeper | Kafka coordinator | 2181 | ✅ |
-| kafka | Message broker | 9092 | ✅ |
-| pose_service | YOLOv8 pose + tracking | - | ✅ |
-| object_service | General object detection | - | ✅ |
-| weapon_service | Gun/knife detection | - | ✅ |
-| face_service | Facial expressions | - | ✅ |
-| scene_service | BLIP scene understanding | - | ✅ |
-| interaction_service | Behavior analysis | - | ✅ |
-| action_service | Action recognition (X3D) | - | ✅ |
-| decision_service | Groq LLM analysis | - | ✅ |
-| gui_service | Flask web interface | 5000 | ✅ |
+| zookeeper | Kafka coordinator | 2181 | |
+| kafka | Message broker | 9092 | |
+| pose_service | YOLOv8 pose + tracking | - | |
+| object_service | General object detection | - | |
+| weapon_service | Gun/knife detection | - | |
+| face_service | Facial expressions | - | |
+| scene_service | BLIP scene understanding | - | |
+| interaction_service | Behavior analysis | - | |
+| action_service | Action recognition (X3D) | - | |
+| decision_service | Groq LLM analysis | - | |
+| gui_service | Flask web interface | 5000 | |
 
 ### Environment Variables
 
@@ -585,77 +582,77 @@ All services automatically use the correct Kafka broker:
 | **Recommended For** | Production, testing | Development |
 
 ### Updated File Structure
-```
+
 NEW/
-├── docker-compose.yml               # ✅ UPDATED - All services configured
+├── docker-compose.yml               # UPDATED - All services configured
 ├── .env                             # Your GROQ_API_KEY
-├── DOCKER_DEPLOYMENT_GUIDE.md       # ✅ NEW - Detailed Docker guide
-├── DOCKER_REVIEW_SUMMARY.md         # ✅ NEW - Review summary
-├── QUICK_START.md                   # ✅ NEW - Quick reference
+├── DOCKER_DEPLOYMENT_GUIDE.md       # NEW - Detailed Docker guide
+├── DOCKER_REVIEW_SUMMARY.md         # NEW - Review summary
+├── QUICK_START.md                   # NEW - Quick reference
 ├── video_demo.py                    # Frame extraction
 ├── output_clip.py                   # Results display
 ├── start_clip_analysis_enhanced.bat # Windows startup script
 ├── action/
-│   ├── action.py                    # ✅ UPDATED - Uses env var
-│   ├── Dockerfile                   # ✅ Ready
+│   ├── action.py                    # UPDATED - Uses env var
+│   ├── Dockerfile                   # Ready
 │   └── requirement.txt
 ├── decision/
-│   ├── decision_clip.py             # ✅ UPDATED - Uses env var
-│   ├── Dockerfile                   # ✅ FIXED
+│   ├── decision_clip.py             # UPDATED - Uses env var
+│   ├── Dockerfile                   # FIXED
 │   └── requirement.txt
 ├── object/
-│   ├── object.py                    # ✅ UPDATED - Uses env var
-│   ├── object1.py                   # ✅ UPDATED - Uses env var
+│   ├── object.py                    # UPDATED - Uses env var
+│   ├── object1.py                   # UPDATED - Uses env var
 │   ├── yolov8n.pt
 │   ├── knifegun1.pt
-│   ├── Dockerfile                   # ✅ FIXED
+│   ├── Dockerfile                   # FIXED
 │   └── requirement.txt
 ├── pose/
-│   ├── pose.py                      # ✅ UPDATED - Uses env var
+│   ├── pose.py                      # UPDATED - Uses env var
 │   ├── yolov8n-pose.pt
 │   ├── osnet_x0_25_msmt17.pt
 │   ├── osnet_x0_25_msmt17.pth
-│   ├── Dockerfile                   # ✅ FIXED
+│   ├── Dockerfile                   # FIXED
 │   └── requirement.txt
 ├── face/
-│   ├── face.py                      # ✅ UPDATED - Uses env var
-│   ├── Dockerfile                   # ✅ FIXED
+│   ├── face.py                      # UPDATED - Uses env var
+│   ├── Dockerfile                   # FIXED
 │   └── requirement.txt
 ├── scene/
-│   ├── blip.py                      # ✅ UPDATED - Uses env var
-│   ├── Dockerfile                   # ✅ FIXED
+│   ├── blip.py                      # UPDATED - Uses env var
+│   ├── Dockerfile                   # FIXED
 │   └── requirement.txt
 ├── interaction/
-│   ├── interaction.py               # ✅ UPDATED - Uses env var
-│   ├── Dockerfile                   # ✅ Ready
+│   ├── interaction.py               # UPDATED - Uses env var
+│   ├── Dockerfile                   # Ready
 │   └── requirement.txt
 └── gui/
-    ├── app.py                       # ✅ UPDATED - Uses env var
-    ├── Dockerfile                   # ✅ FIXED
-    ├── requirements.txt             # ✅ CREATED
+    ├── app.py                       # UPDATED - Uses env var
+    ├── Dockerfile                   # FIXED
+    ├── requirements.txt             # CREATED
     └── templates/
 
 ## Recent Changes
 
 ### November 3, 2025 - Token Optimization
-- ✅ Implemented data summarization in `decision_clip.py`
-- ✅ Reduced tokens from 101,524 to ~800 (99.2% reduction)
-- ✅ Added `_summarize_data_for_llm()` method
-- ✅ Compressed LLM prompt from 200 to 50 words
-- ✅ Added token estimation logging
-- ✅ Created `LLM_OPTIMIZATION.md` documentation
+- Implemented data summarization in `decision_clip.py`
+- Reduced tokens from 101,524 to ~800 (99.2% reduction)
+- Added `_summarize_data_for_llm()` method
+- Compressed LLM prompt from 200 to 50 words
+- Added token estimation logging
+- Created `LLM_OPTIMIZATION.md` documentation
 
 ### November 2, 2025 - Production Hardening
-- ✅ Added comprehensive error handling to decision_clip.py
-- ✅ Added retry logic for Kafka and LLM (3 attempts each)
-- ✅ Added timeout settings to prevent hangs
-- ✅ Added emoji-based logging for better UX
-- ✅ Optimized startup order (decision_clip starts first)
+- Added comprehensive error handling to decision_clip.py
+- Added retry logic for Kafka and LLM (3 attempts each)
+- Added timeout settings to prevent hangs
+- Added emoji-based logging for better UX
+- Optimized startup order (decision_clip starts first)
 
 ### November 1, 2025 - Code Cleanup
-- ✅ Deleted 11 obsolete person-tracking files
-- ✅ Removed old database service
-- ✅ Cleaned up legacy code and scripts
+- Deleted 11 obsolete person-tracking files
+- Removed old database service
+- Cleaned up legacy code and scripts
 
 ## Future Enhancements
 
@@ -682,7 +679,7 @@ NEW/
 
 ### Clip Metadata Schema
 Every message includes:
-```json
+json
 {
   "clip_id": "clip_a1b2c3d4",      // MD5 hash of filename + timestamp
   "frame_index": 0,                 // 0-based frame number
@@ -691,11 +688,11 @@ Every message includes:
   "timestamp": 1730649600.123,      // Unix timestamp
   "camera_id": "Camera_01_Lobby"    // Camera identifier
 }
-```
+
 
 ### END_OF_CLIP Marker
 Signals completion of frame transmission:
-```json
+json
 {
   "message_type": "END_OF_CLIP",
   "clip_id": "clip_a1b2c3d4",
@@ -703,7 +700,7 @@ Signals completion of frame transmission:
   "input_type": "video",
   "timestamp": 1730649620.456
 }
-```
+
 
 ### LLM Token Optimization Strategy
 1. **Data Aggregation** (99% reduction):
@@ -747,7 +744,7 @@ Signals completion of frame transmission:
 - **Groq API**: Free tier account (100K tokens/day)
 
 ### Python Packages
-```
+
 opencv-python
 kafka-python
 groq
@@ -761,7 +758,7 @@ transformers
 pillow
 boxmot
 torchreid
-```
+
 
 ## License
 
