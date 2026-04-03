@@ -4,7 +4,6 @@
 
 This system analyzes images or short video clips (up to 10 seconds) to determine if they contain suspicious activity. Instead of tracking individual people, it provides a **single overall verdict** for the entire clip using 6 AI services and an LLM-based decision aggregator.
 
-**Current Status**:  **98% Production Ready** - Docker deployment complete!
 
 ## Key Features
 
