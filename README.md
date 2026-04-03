@@ -219,14 +219,14 @@ NEW/
 ### Console Output
 
 ```
-================================================================================
-📊 CLIP ANALYSIS RESULT
-================================================================================
+
+CLIP ANALYSIS RESULT
+
 Clip ID:      clip_a1b2c3d4
 Input Type:   IMAGE
 Total Frames: 1
 
-🚨 VERDICT: SUSPICIOUS
+VERDICT: SUSPICIOUS
 Confidence:   92%
 Threat Level: 8/10
 Severity:     HIGH
