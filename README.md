@@ -763,20 +763,4 @@ boxmot
 torchreid
 ```
 
-## License
-
-[Your License Here]
-
-## Support
-
-For issues or questions, please open an issue on GitHub or contact the development team.
-
-**Repository**: https://github.com/Rishav1git/Capstone  
-**Branch**: main
-
----
-
-**Last Updated:** November 12, 2025  
-**Version:** 1.1.0 (Docker-Ready Clip-Based Analysis)  
-**Status:** 98% Production Ready - Docker deployment complete!  
 **Deployment:** Both Docker and Local supported
